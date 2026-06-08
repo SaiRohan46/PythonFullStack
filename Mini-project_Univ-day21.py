@@ -1,6 +1,6 @@
 #Mini Project University
 class Person:
-    university = "Codegnan University"
+    university = "ABC University"
     def  __init__(self,name,age,ed_back,dept):
         self.name=name
         self.age=age
