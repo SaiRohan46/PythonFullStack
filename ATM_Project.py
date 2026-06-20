@@ -1,147 +1,105 @@
-'''
-1. `is` vs `==`
+account_holder = {
+    "name": "Rohan",
+    "pin": "1234",  
+    "balance": 5000  
+}
 
-`==` (Equality):Checks if the values of two objects are equal.
-`is` (Identity):Checks if two variables point to the exact same object in memory (i.e., they have the same memory address / `id()`).
-
-# Both lists have the same values
-list1 = [1, 2, 3]
-list2 = [1, 2, 3]
-list3 = list1
-
-print(list1 == list2)  # True -> Because their contents are identical
-print(list1 is list2)  # False -> Because they are two different objects in memory
-
-print(list1 is list3)  # True -> Because list3 points directly to list1's memory space
-
-2. `extend` vs `append`
-
-`append()`:Adds its argument to the end of the list as a single element.
-`extend()`:Iterates over its argument and adds each item to the list, extending its length.
-
-
-# Using append
-fruits1 = ['apple', 'banana']
-fruits1.append(['kiwi', 'orange'])
-print(fruits1)  
-# Output: ['apple', 'banana', ['kiwi', 'orange']] -> Nestled list added
-
-# Using extend
-fruits2 = ['apple', 'banana']
-fruits2.extend(['kiwi', 'orange'])
-print(fruits2)  
-# Output: ['apple', 'banana', 'kiwi', 'orange'] -> Flattended/Merged elements
-
-3. Mutable vs Immutable
-
-Mutable:Objects whose values can be modified after creation (e.g., Lists, Dictionaries, Sets).
-Immutable:Objects whose values cannot be altered once created (e.g., Strings, Integers, Floats, Tuples).
-If you modify an immutable object, Python actually creates a brand-new object in memory.
-
-# Mutable Example (List)
-my_list = [1, 2, 3]
-my_list[0] = 99  # Allowed! Modifies the list in-place
-print(my_list)   # [99, 2, 3]
-
-# Immutable Example (String)
-my_str = "Hello"
-# my_str[0] = "Y"  # Throws a TypeError! You cannot alter it directly.
-
-
-4. Memory Allocation in Python
-
-Python automatically manages memory using two main mechanisms:
-
-Reference Counting:Every object keeps track of how many variables point to it. When an object's reference count drops to 0, Python immediately reclaims that memory space.
-Garbage Collection: A built-in cyclical garbage collector looks for "reference cycles" (e.g., Object A references Object B, and Object B references Object A,
-but neither is accessible by your program) and cleans them up to prevent memory leaks.
-
-
-5. Generators
-
-Generators are functions that return an iterator using the `yield` keyword instead of `return`.
-They generate items one at a time on-the-fly (lazy evaluation) rather than storing the entire dataset in your computer's RAM, making them incredibly memory efficient for massive datasets.
-
-
-def countdown(n):
-    while n > 0:
-        yield n
-        n -= 1
-
-# Calling the generator function doesn't run the code, it creates a generator object
-counter = countdown(3)
-
-print(next(counter))  # Output: 3
-print(next(counter))  # Output: 2
-print(next(counter))  # Output: 1
-# Calling next() again would raise a StopIteration error
-'''
 class ATM:
-    def __init__(self, name, account_number, pin, balance=0):
+    def __init__(self, name, pin, balance=0):
         self.name = name
-        self.account_number = account_number
-        self.__pin = pin 
+        self.pin = pin
         self.balance = balance
+        self.transaction_history = []
+  
+    def verify_pin(self):
+        attempts = 3
+        while attempts > 0:
+            entered_pin = input("Enter your 4-digit ATM PIN: ")
+            if entered_pin == self.pin:
+                print(f"Welcome {self.name}")
+                return True
+            else:
+                attempts -= 1
+                print(f"Incorrect PIN. Attempts left: {attempts}")
+        return False
 
-    def check_balance(self):
-        print(f"\nAccount Holder: {self.name}")
-        print(f"Current Balance: ${self.balance}")
-
-    def deposit(self, amount):
-        if amount > 0:
-            self.balance += amount
-            print(f"\nSuccessfully deposited ${amount}. New balance: ${self.balance}")
-        else:
-            print("\nInvalid deposit amount.")
-
-    def withdraw(self, amount):
-        if 0 < amount <= self.balance:
-            self.balance -= amount
-            print(f"\nSuccessfully withdrew ${amount}. Remaining balance: ${self.balance}")
+    def withdraw(self):
+        amount = int(input("Enter amount to withdraw: "))
+        if amount <= 0:
+            print("Invalid amount")
         elif amount > self.balance:
-            print("\nInsufficient funds.")
+            print("Insufficient balance")
         else:
-            print("\nInvalid withdrawal amount.")
+            self.balance -= amount
+            self.transaction_history.append(f"Withdraw: Rs{amount}")
+            print(f"Please collect Rs{amount}")
+            print(f"Remaining Balance: Rs{self.balance}")
 
-    def verify_pin(self, entered_pin):
-        return self.__pin == entered_pin
+    def deposit(self):
+        amount = int(input("Enter amount to deposit: "))
+        if amount <= 0:
+            print("Invalid amount")
+        else:
+            self.balance += amount
+            self.transaction_history.append(f"Deposit: Rs{amount}")
+            print(f"Rs{amount} deposited successfully")
+            print(f"Updated Balance: Rs{self.balance}")
+    
+    def check_balance(self):
+        print(f"Your Balance: Rs{self.balance}")
 
-def main():
-    user_account = ATM(name="Rohan", account_number="123456", pin="4645", balance=1000)
+    def change_pin(self):
+        old_pin = input("Enter old PIN: ")
+        if old_pin == self.pin:
+            new_pin = input("Enter new 4-digit PIN: ")
+            if len(new_pin) == 4 and new_pin.isdigit():
+                self.pin = new_pin
+                print("PIN changed successfully")
+            else:
+                print("PIN must be 4 digits")
+        else:
+            print("Incorrect old PIN")
 
-    print("ATM System Initialized.")
-    entered_pin = input("Please enter your 4-digit PIN: ")
+    def show_history(self):
+        print("Transaction History:")
+        if not self.transaction_history:
+            print("No transactions yet")
+        else:
+            for t in self.transaction_history:
+                print(t)
 
-    if user_account.verify_pin(entered_pin):
+    def menu(self):
         while True:
-            print("\n--- MENU ---")
-            print("1. Check Balance")
+            print("\n1. Withdraw")
             print("2. Deposit")
-            print("3. Withdraw")
-            print("4. Exit")
-            
-            choice = input("Select an option: ")
+            print("3. Check Balance")
+            print("4. Change PIN")
+            print("5. Transaction History")
+            print("6. Exit")
 
-            if choice == '1':
-                user_account.check_balance()
-            elif choice == '2':
-                amt = float(input("Enter amount to deposit: "))
-                user_account.deposit(amt)
-            elif choice == '3':
-                amt = float(input("Enter amount to withdraw: "))
-                user_account.withdraw(amt)
-            elif choice == '4':
-                print("Thank you for using our ATM. Goodbye!")
+            choice = input("Enter your choice: ")
+
+            if choice == "1":
+                self.withdraw()
+            elif choice == "2":
+                self.deposit()
+            elif choice == "3":
+                self.check_balance()
+            elif choice == "4":
+                self.change_pin()
+            elif choice == "5":
+                self.show_history()
+            elif choice == "6":
+                print("Thank you for using ATM")
                 break
             else:
-                print("Invalid option. Please try again.")
-    else:
-        print("Incorrect PIN. Access Denied.")
-
-if __name__ == "__main__":
-    main()
-
-
+                print("Invalid choice")
+user = ATM(account_holder["name"], account_holder["pin"], account_holder["balance"])
+print("\nPlease insert your ATM card")
+if user.verify_pin():
+    user.menu()
+else:
+    print("Card blocked due to wrong PIN attempts")
 
 
 
